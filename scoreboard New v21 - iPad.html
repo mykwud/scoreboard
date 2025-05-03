@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game Scoreboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Header with center-aligned Race to Target text */
+    header {
+      background-color: yellow;
+      padding: 10px;
+    }
+    #targetDisplay {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 0;
+      text-align: center;
+    }
+    .content {
+      flex: 1;
+      display: flex;
+    }
+    .half {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid #ccc;
+      padding: 10px;
+      transition: background-color 0.3s ease;
+    }
+    /* Win message style displayed above the player's name */
+    .win-message {
+      font-size: 48px;
+      color: red;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .player-name {
+      font-size: 80px;
+      margin-bottom: 10px;
+    }
+    .score {
+      font-size: 100px;
+      margin-bottom: 10px;
+    }
+    button {
+      font-size: 2rem;
+      min-height: 5rem;
+      min-width: 8rem;
+      margin: 10px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
+    }
+    /* Specific style for WIN buttons */
+    .win-button {
+      font-size: 3rem;
+      min-height: 7rem;
+      min-width: 12rem;
+      background-color: yellow;
+      cursor: pointer;
+    }
+    .countdown-display {
+      font-size: 64px;
+      margin-bottom: 10px;
+    }
+    #player1-section {
+      background-color: green;
+    }
+    #player2-section {
+      background-color: blue;
+    }
+    /* Menu row styles */
+    .bottom-menu {
+      background-color: #ccc;
+      padding: 10px;
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+    }
+    select {
+      font-size: 1.5rem;
+      margin: 5px;
+      padding: 0.75rem;
+      touch-action: manipulation;
+    }
+    input[type="color"] {
+      font-size: 1.5rem;
+      margin: 5px;
+      padding: 0.75rem;
+    }
+    .toss-result {
+      font-size: 24px;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header with Race to Target text -->
+  <header>
+    <h1 id="targetDisplay">Race to 1</h1>
+  </header>
+  
+  <div class="content">
+    <!-- Player 1 Section -->
+    <div class="half" id="player1-section">
+      <div>
+        <div id="winMessage1" class="win-message"></div>
+        <div class="player-name" id="player1-name">Player 1</div>
+        <div class="score">Score: <span id="score1">0</span></div>
+        <button class="win-button" onclick="handleButtonEvent(event, () => addScore('score1'))" ontouchstart="handleButtonEvent(event, () => addScore('score1'))">WIN</button>
+        <div>
+          <div class="countdown-display" id="countdown1" data-default="30">30</div>
+          <button id="start1" onclick="handleButtonEvent(event, () => startCountdown('countdown1','pause1'))" ontouchstart="handleButtonEvent(event, () => startCountdown('countdown1','pause1'))">Start</button>
+          <button id="pause1" onclick="handleButtonEvent(event, () => pauseCountdown('pause1'))" ontouchstart="handleButtonEvent(event, () => pauseCountdown('pause1'))">Pause</button>
+        </div>
+        <div class="toss-result" id="tossResult1"></div>
+      </div>
+    </div>
+    
+    <!-- Player 2 Section -->
+    <div class="half" id="player2-section">
+      <div>
+        <div id="winMessage2" class="win-message"></div>
+        <div class="player-name" id="player2-name">Player 2</div>
+        <div class="score">Score: <span id="score2">0</span></div>
+        <button class="win-button" onclick="handleButtonEvent(event, () => addScore('score2'))" ontouchstart="handleButtonEvent(event, () => addScore('score2'))">WIN</button>
+        <div>
+          <div class="countdown-display" id="countdown2" data-default="30">30</div>
+          <button id="start2" onclick="handleButtonEvent(event, () => startCountdown('countdown2','pause2'))" ontouchstart="handleButtonEvent(event, () => startCountdown('countdown2','pause2'))">Start</button>
+          <button id="pause2" onclick="handleButtonEvent(event, () => pauseCountdown('pause2'))" ontouchstart="handleButtonEvent(event, () => pauseCountdown('pause2'))">Pause</button>
+        </div>
+        <div class="toss-result" id="tossResult2"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bottom menu row with player-specific actions and Match Options dropdown -->
+  <div class="bottom-menu">
+    <!-- Player 1 Action Dropdown -->
+    <div>
+      <select id="menu1" onchange="handleMenuChange('menu1')">
+        <option value="" disabled selected>Select an Action</option>
+        <option value="changeName1">Change Name</option>
+        <option value="changeColor1">Change Background</option>
+        <option value="setTimer1">Define Countdown Period</option>
+        <option value="setHeadstart1">Set Headstart</option>
+      </select>
+      <input type="color" id="colorPicker1" style="display:none;" onchange="applyBackgroundColor('player1-section','colorPicker1')">
+    </div>
+    
+    <!-- Match Options Dropdown -->
+    <div>
+      <select id="matchOptions" onchange="handleMatchOptionsChange()">
+        <option value="" disabled selected>Match Options</option>
+        <option value="setTarget">Set Match Target</option>
+        <option value="newMatch">New Match</option>
+        <option value="tossForBreak" id="tossOption">Toss for Break</option>
+      </select>
+    </div>
+    
+    <!-- Player 2 Action Dropdown -->
+    <div>
+      <select id="menu2" onchange="handleMenuChange('menu2')">
+        <option value="" disabled selected>Select an Action</option>
+        <option value="changeName2">Change Name</option>
+        <option value="changeColor2">Change Background</option>
+        <option value="setTimer2">Define Countdown Period</option>
+        <option value="setHeadstart2">Set Headstart</option>
+      </select>
+      <input type="color" id="colorPicker2" style="display:none;" onchange="applyBackgroundColor('player2-section','colorPicker2')">
+    </div>
+  </div>
+  
+  <script>
+    // Global state variables.
+    let tossWinner = null;   // "player1" or "player2"
+    let firstBreak = true;   // true until the designated break starts
+    let targetGames = 1;     // default match target
+    let matchOver = false;   // false until one player's score reaches the target
+    let matchStarted = false; // true when a match is active
+    let isTouchDevice = 'ontouchstart' in window; // Detect touch device
+
+    // Headstart values for each player.
+    let headStart1 = 0;
+    let headStart2 = 0;
+
+    let timers = {};
+    let touchHandled = false; // Flag to prevent duplicate events
+
+    // Unified event handler for buttons
+    function handleButtonEvent(event, callback) {
+      if (event.type === 'touchstart') {
+        event.preventDefault(); // Prevent default touch behaviors
+        touchHandled = true;
+        callback();
+      } else if (event.type === 'click' && !touchHandled) {
+        callback();
+      }
+      // Reset touchHandled after a short delay to allow next interaction
+      if (event.type === 'touchstart') {
+        setTimeout(() => { touchHandled = false; }, 100);
+      }
+    }
+
+    // Update the "Race to Target" display.
+    function updateTargetDisplay() {
+      document.getElementById("targetDisplay").textContent = "Race to " + targetGames;
+    }
+    updateTargetDisplay();
+
+    // Update toss option status in the Match Options dropdown.
+    function updateTossOptionStatus() {
+      document.getElementById("tossOption").disabled = matchStarted;
+    }
+    updateTossOptionStatus();
+
+    // Handle Match Options dropdown changes.
+    function handleMatchOptionsChange() {
+      const menu = document.getElementById("matchOptions");
+      const action = menu.value;
+      if (action === "setTarget") {
+        setTarget();
+      } else if (action === "newMatch") {
+        newMatch();
+      } else if (action === "tossForBreak") {
+        handleTossChange();
+      }
+      menu.value = ""; // Reset dropdown to default
+    }
+
+    // When a "WIN" button is pressed, update the score, check win condition, and alternate break.
+    function addScore(scoreId) {
+      if (matchOver) return;
+      
+      const scoreSpan = document.getElementById(scoreId);
+      const newScore = parseInt(scoreSpan.textContent) + 1;
+      scoreSpan.textContent = newScore;
+      
+      // Check win condition.
+      if (scoreId === "score1") {
+        if (newScore >= targetGames) {
+          matchOver = true;
+          matchStarted = false;
+          const player1Name = document.getElementById("player1-name").textContent;
+          document.getElementById("winMessage1").textContent = player1Name + " wins!";
+          // Disable both Start buttons.
+          document.getElementById("start1").disabled = true;
+          document.getElementById("start2").disabled = true;
+          resetAndPauseTimers();
+          updateTossOptionStatus();
+          return;
+        }
+      } else {
+        if (newScore >= targetGames) {
+          matchOver = true;
+          matchStarted = false;
+          const player2Name = document.getElementById("player2-name").textContent;
+          document.getElementById("winMessage2").textContent = player2Name + " wins!";
+          // Disable both Start buttons.
+          document.getElementById("start1").disabled = true;
+          document.getElementById("start2").disabled = true;
+          resetAndPauseTimers();
+          updateTossOptionStatus();
+          return;
+        }
+      }
+      
+      // Ensure a toss has been performed.
+      if (!tossWinner) {
+        alert("Please toss for break first!");
+        return;
+      }
+      
+      // Alternate the break.
+      tossWinner = (tossWinner === "player1") ? "player2" : "player1";
+      
+      if (tossWinner === "player1") {
+        const player1Name = document.getElementById("player1-name").textContent;
+        document.getElementById("tossResult1").textContent = player1Name + " to break...";
+        document.getElementById("tossResult2").textContent = "";
+      } else {
+        const player2Name = document.getElementById("player2-name").textContent;
+        document.getElementById("tossResult2").textContent = player2Name + " to break...";
+        document.getElementById("tossResult1").textContent = "";
+      }
+      
+      resetAndPauseTimers();
+      firstBreak = true;
+    }
+    
+    function removeScore(scoreId) {
+      if (matchOver) return;
+      const scoreSpan = document.getElementById(scoreId);
+      scoreSpan.textContent = Math.max(parseInt(scoreSpan.textContent) - 1, 0);
+    }
+    
+    function changeName(nameId) {
+      const nameDiv = document.getElementById(nameId);
+      const newName = prompt("Enter new name:").trim();
+      if (newName) {
+        nameDiv.textContent = newName;
+      } else {
+        alert("Name cannot be empty.");
+      }
+    }
+    
+    function handleMenuChange(menuId) {
+      const menu = document.getElementById(menuId);
+      const action = menu.value;
+      const colorPickerId = (menuId === "menu1") ? "colorPicker1" : "colorPicker2";
+      if (action.includes("changeName")) {
+        const player = (action === "changeName1") ? "player1-name" : "player2-name";
+        changeName(player);
+      } else if (action.includes("changeColor")) {
+        document.getElementById(colorPickerId).style.display = "inline-block";
+      } else if (action.includes("setTimer")) {
+        const playerTimer = (action === "setTimer1") ? "countdown1" : "countdown2";
+        setTimerDuration(playerTimer);
+      } else if (action === "setHeadstart1") {
+        setHeadstart("player1");
+      } else if (action === "setHeadstart2") {
+        setHeadstart("player2");
+      }
+      menu.value = "";
+    }
+    
+    function applyBackgroundColor(sectionId, colorPickerId) {
+      const colorPicker = document.getElementById(colorPickerId);
+      const color = colorPicker.value;
+      document.getElementById(sectionId).style.backgroundColor = color;
+      colorPicker.style.display = "none";
+    }
+    
+    function setTimerDuration(timerId) {
+      const newDuration = prompt("Enter new countdown duration (in seconds):");
+      if (newDuration && !isNaN(newDuration) && parseInt(newDuration) > 0 && parseFloat(newDuration) === parseInt(newDuration)) {
+        const countdownEl = document.getElementById(timerId);
+        countdownEl.textContent = parseInt(newDuration);
+        countdownEl.setAttribute("data-default", parseInt(newDuration));
+      } else {
+        alert("Please enter a positive whole number.");
+      }
+    }
+    
+    // Set headstart: must be a whole number between 0 and (targetGames - 1)
+    function setHeadstart(player) {
+      const promptMsg = "Enter headstart for " + player + " (whole number between 0 and " + (targetGames - 1) + "):";
+      const input = prompt(promptMsg);
+      if (input !== null && input.trim() !== "" && !isNaN(input)) {
+         let hs = parseInt(input);
+         if (parseFloat(input) !== hs) {
+            alert("Please enter a whole number.");
+            return;
+         }
+         if (hs >= 0 && hs <= (targetGames - 1)) {
+            if (player === "player1") {
+               headStart1 = hs;
+               document.getElementById("score1").textContent = hs;
+            } else {
+               headStart2 = hs;
+               document.getElementById("score2").textContent = hs;
+            }
+         } else {
+            alert("Headstart must be a whole number between 0 and " + (targetGames - 1) + ".");
+         }
+      } else {
+         alert("Please enter a valid number.");
+      }
+    }
+    
+    // Set the match target and reset match state.
+    function setTarget() {
+      const newTarget = prompt("Enter the match target (number of games to win):", targetGames);
+      if (newTarget && !isNaN(newTarget) && parseInt(newTarget) > 0) {
+        targetGames = parseInt(newTarget);
+        updateTargetDisplay();
+        // Reset match state
+        document.getElementById("winMessage1").textContent = "";
+        document.getElementById("winMessage2").textContent = "";
+        document.getElementById("score1").textContent = "0";
+        document.getElementById("score2").textContent = "0";
+        resetAndPauseTimers();
+        matchOver = false;
+        matchStarted = false;
+        tossWinner = null;
+        firstBreak = true;
+        document.getElementById("tossResult1").textContent = "";
+        document.getElementById("tossResult2").textContent = "";
+        document.getElementById("start1").disabled = true;
+        document.getElementById("start2").disabled = true;
+        document.getElementById("pause1").disabled = true;
+        document.getElementById("pause2").disabled = true;
+        updateTossOptionStatus();
+      } else {
+        alert("Please enter a positive number.");
+      }
+    }
+    
+    // Resets a given countdown display to its stored default and clears its timer.
+    function resetCountdown(countdownId, pauseId) {
+      if (timers[countdownId]) {
+        clearInterval(timers[countdownId]);
+        timers[countdownId] = null;
+        document.getElementById(pauseId).disabled = true;
+      }
+      const countdownEl = document.getElementById(countdownId);
+      const defaultVal = countdownEl.getAttribute("data-default") || "30";
+      countdownEl.textContent = defaultVal;
+    }
+    
+    // Resets both countdown timers.
+    function resetAndPauseTimers() {
+      resetCountdown("countdown1", "pause1");
+      resetCountdown("countdown2", "pause2");
+    }
+    
+    function initiateCountdown(countdownId, pauseId) {
+      const countdownDisplay = document.getElementById(countdownId);
+      let timeLeft = parseInt(countdownDisplay.textContent);
+      if (timers[countdownId]) {
+        clearInterval(timers[countdownId]);
+      }
+      document.getElementById(pauseId).disabled = false;
+      timers[countdownId] = setInterval(() => {
+        timeLeft--;
+        countdownDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timers[countdownId]);
+          timers[countdownId] = null;
+          playSound();
+          if (countdownId === "countdown1") {
+            flashBackground("player1-section");
+          } else if (countdownId === "countdown2") {
+            flashBackground("player2-section");
+          }
+          resetAndPauseTimers();
+        }
+      }, 1000);
+    }
+    
+    function startCountdown(countdownId, pauseId) {
+      let currentPlayer = (countdownId === "countdown1") ? "player1" : "player2";
+      if (firstBreak) {
+        if (!tossWinner) {
+         alert("Please toss for break first!");
+         return;
+        }
+        if (currentPlayer !== tossWinner) {
+          const winnerName = document.getElementById(tossWinner === "player1" ? "player1-name" : "player2-name").textContent;
+          alert("Only " + winnerName + " can start the break!");
+          return;
+        }
+
+        // Update toss result messaging.
+        if (currentPlayer === "player1") {
+          document.getElementById("tossResult1").textContent = document.getElementById("player1-name").textContent + " broke";
+        } else {
+          document.getElementById("tossResult2").textContent = document.getElementById("player2-name").textContent + " broke";
+        }
+        firstBreak = false;
+      }
+      if (countdownId === "countdown1") {
+        resetCountdown("countdown2", "pause2");
+        initiateCountdown("countdown1", "pause1");
+        document.getElementById("start1").disabled = true;
+        document.getElementById("start2").disabled = false;
+        document.getElementById("pause1").disabled = false;
+        document.getElementById("pause2").disabled = true;
+      } else if (countdownId === "countdown2") {
+        resetCountdown("countdown1", "pause1");
+        initiateCountdown("countdown2", "pause2");
+        document.getElementById("start2").disabled = true;
+        document.getElementById("start1").disabled = false;
+        document.getElementById("pause2").disabled = false;
+        document.getElementById("pause1").disabled = true;
+      }
+    }
+    
+    function pauseCountdown(pauseId) {
+      const countdownId = (pauseId === "pause1") ? "countdown1" : "countdown2";
+      if (timers[countdownId]) {
+        clearInterval(timers[countdownId]);
+        timers[countdownId] = null;
+        document.getElementById(pauseId).disabled = true;
+        if (pauseId === "pause1") {
+          document.getElementById("start1").disabled = false;
+          document.getElementById("pause1").disabled = true;
+          document.getElementById("start2").disabled = false;
+          document.getElementById("pause2").disabled = true;
+        } else if (pauseId === "pause2") {
+          document.getElementById("start2").disabled = false;
+          document.getElementById("pause2").disabled = true;
+          document.getElementById("start1").disabled = false;
+          document.getElementById("pause1").disabled = true;
+        }
+      }
+    }
+    
+    function playSound() {
+      const audio = new Audio('https://www.soundjay.com/button/beep-07.wav');
+      audio.play();
+    }
+    
+    function flashBackground(sectionId) {
+      const element = document.getElementById(sectionId);
+      const originalColor = window.getComputedStyle(element).backgroundColor;
+      element.style.backgroundColor = "red";
+      setTimeout(() => {
+        element.style.backgroundColor = originalColor;
+      }, 1000);
+    }
+    
+    // Toss handler: randomly chooses the toss winner, updates break message,
+    // clears win messages, resets scores to 0, resets timers, marks the match as active,
+    // and enables only the appropriate Start button.
+    function handleTossChange() {
+      const tossResult = Math.random() < 0.5;
+      const player1Name = document.getElementById("player1-name").textContent;
+      const player2Name = document.getElementById("player2-name").textContent;
+      if (tossResult) {
+        tossWinner = "player1";
+        document.getElementById("tossResult1").textContent = player1Name + " to break...";
+        document.getElementById("tossResult2").textContent = "";
+      } else {
+        tossWinner = "player2";
+        document.getElementById("tossResult2").textContent = player2Name + " to break...";
+        document.getElementById("tossResult1").textContent = "";
+      }
+      firstBreak = true;
+
+      // Clear win messages.
+      document.getElementById("winMessage1").textContent = "";
+      document.getElementById("winMessage2").textContent = "";
+
+      // Reset scores to 0.
+      document.getElementById("score1").textContent = "0";
+      document.getElementById("score2").textContent = "0";
+      resetAndPauseTimers();
+      matchOver = false;
+
+      // Mark the match as active and disable the toss option.
+      matchStarted = true;
+      updateTossOptionStatus();
+
+      // Enable only the Start button for the toss winner.
+      if (tossWinner === "player1") {
+        document.getElementById("start1").disabled = false;
+        document.getElementById("start2").disabled = true;
+        document.getElementById("pause1").disabled = false;
+        document.getElementById("pause2").disabled = true;
+      } else {
+        document.getElementById("start2").disabled = false;
+        document.getElementById("start1").disabled = true;
+        document.getElementById("pause2").disabled = false;
+        document.getElementById("pause1").disabled = true;
+      }
+    }
+    
+    // New Match button: resets scores, timers, win messages, and tosses for break.
+    function newMatch() {
+      // Clear win messages.
+      document.getElementById("winMessage1").textContent = "";
+      document.getElementById("winMessage2").textContent = "";
+
+      // Reset scores to 0.
+      document.getElementById("score1").textContent = "0";
+      document.getElementById("score2").textContent = "0";
+
+      // Reset timers.
+      resetAndPauseTimers();
+      matchOver = false;
+
+      // Disable both Start and Pause buttons
+      document.getElementById("start1").disabled = true;
+      document.getElementById("start2").disabled = true;
+      document.getElementById("pause1").disabled = true;
+      document.getElementById("pause2").disabled = true;
+
+      // Toss for break.
+      handleTossChange();
+    }
+  </script>
+</body>
+</html>
